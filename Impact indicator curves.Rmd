@@ -58,36 +58,32 @@ data <- tibble(
 ```{r}
 
 
-fungi <- readPNG("fungi.png")
+fungi <- readPNG(here("pngs", "fungi.png"))
 fungi <- rasterGrob(fungi)
 
-fly <- readPNG("fly.png")
+fly <- readPNG(here("pngs","fly.png"))
 fly <- rasterGrob(fly)
 
-algae <- readPNG("chlorella.png")
+algae <- readPNG(here("pngs", "chlorella.png"))
 algae <- rasterGrob(algae)
 
-cow <- readPNG("cow_2.png")
+cow <- readPNG(here("pngs", "cow_2.png"))
 cow <- rasterGrob(cow)
 
-
-hen <- readPNG("chicken_2.png")
+hen <- readPNG(here("pngs", "chicken_2.png"))
 hen <- rasterGrob(hen)
 
-beans <- readPNG("seeds.png")
+beans <- readPNG(here("pngs", "seeds.png"))
 beans <- rasterGrob(beans)
 
-fish <- readPNG("tuna_2.png")
+fish <- readPNG(here("pngs/tuna_2.png"))
 fish <- rasterGrob(fish)
 
-meat <- readPNG("meat.png")
+meat <- readPNG(here("pngs/meat.png"))
 meat <- rasterGrob(meat)
 
-fish2 <- readPNG("tilapia.png")
+fish2 <- readPNG(here("pngs/tilapia.png"))
 fish2 <- rasterGrob(fish2)
-
-
-
 
 
 ```
@@ -106,7 +102,8 @@ impact_indicators <- read_csv("parodi_impact_indicators.csv") %>%
   add_row(food="Mussels", ghg_50g_proetin = 0.67) %>%
   add_row(food="Sugar Kelp", ghg_50g_proetin = 1.05) %>%
   add_row(food="Tilapia", ghg_50g_proetin = 3.19) %>% #also from Parodi 
-  arrange(ghg_50g_proetin)  
+  arrange(ghg_50g_proetin) %>% 
+  mutate(label_kg = label*20)
 
 
 ```
@@ -138,15 +135,17 @@ ggplot(data = impact_indicators %>%
                               food == "Mycoprotein" ~  ghg_50g_proetin +0.1,
                               food == "BSF larvae" ~ ghg_50g_proetin +0.08,
                               TRUE ~ ghg_50g_proetin)) %>% 
-         mutate(label = paste0(food," (", round(ghg_50g_proetin, digits = 1), ")")), 
+         
+         mutate(label = paste0(food," (", round(ghg_50g_proetin, digits = 1), ")")) %>% 
+          mutate(label_kg = paste0(food," (", round(ghg_50g_proetin, digits = 1)*20, ")")),
        
        aes(x=ghg_50g_proetin, y=y))+
-  geom_line(aes(colour=ghg_50g_proetin), size=2)+
+  geom_line(aes(colour=ghg_50g_proetin*20), size=2)+
   geom_point(size=1.2)+
-  scale_colour_gradient(low = "lemonchiffon", high = "firebrick")+
+  scale_colour_gradient(low = "lemonchiffon", high = "firebrick", breaks = )+
   scale_x_continuous(limits = c(-1, 13))+
   scale_y_continuous(limits = c(0.4, 0.58))+
-  geom_text(mapping = aes(x=x, y=shuffle, label=label, hjust=hjust), angle=45,size=2, nudge_x = -0.05) +
+  geom_text(mapping = aes(x=x, y=shuffle, label=label_kg, hjust=hjust), angle=45,size=2, nudge_x = -0.05) +
   theme(legend.position = c(0.5,0.05),
         legend.text = element_text(size=6),
         legend.title = element_text(size = 6),
@@ -157,7 +156,7 @@ ggplot(data = impact_indicators %>%
         axis.title = element_blank(),
         axis.ticks = element_blank(),
         axis.text = element_blank())+
-  labs(colour = bquote(GWP[100]~(kg~CO[2]~eq.~"50g"~protein^-1)))+
+  labs(colour = bquote(GWP[100]~(kg~CO[2]~eq.~kg~protein^-1)))+
   guides(colour=guide_colorbar(title.position = "top", title.hjust = 0.5, barwidth = unit(3, "cm"), barheight = unit(0.1, "cm"), ticks = FALSE))+
   annotation_custom(grob = beans, xmin = -0.1, xmax= 0.3, ymin = 0.51, ymax=0.53)+
   annotation_custom(grob = fish, xmin = -1.59, xmax= -0.59, ymin = 0.46, ymax=0.51)+
@@ -169,10 +168,12 @@ ggplot(data = impact_indicators %>%
   annotation_custom(grob = fish2, xmin = 4.7, xmax = 5.7, ymin = 0.503, ymax=0.583)+
   annotation_custom(grob = algae, xmin = 6.2, xmax = 7.2, ymin = 0.45, ymax=0.51)+
   geom_segment( x = 6.55, xend = 11.8, y = 0.505, yend = 0.505, arrow = arrow(ends = "both", length = unit(0.07, "cm")), size=0.15, colour="grey40")+
-  annotate("text", x=9.5, y=0.515, label = "Environmental potential\nof Chorella relative to beef",  size=1.8,)+
-  ggsave(here("explore", "cottrell_explore", "impacts_line.jpg"), device = "jpg", dpi=600, width = 9, height = 6, units = "cm")+
-  ggsave(here("explore", "cottrell_explore", "impacts_line.pdf"), device = "pdf", dpi=600, width = 9, height = 6, units = "cm")+
-  ggsave(here("explore", "cottrell_explore", "impacts_line.tiff"), device = "tiff", dpi=600, width = 9, height = 6, units = "cm")
+  annotate("text", x=9.5, y=0.515, label = "Environmental potential\nof Chorella relative to beef",  size=1.8,)
+
+
+  ggsave(here("figs", "impacts_line.jpg"), device = "jpg", dpi=600, width = 9, height = 6, units = "cm")+
+  ggsave(here("figs", "impacts_line.pdf"), device = "pdf", dpi=600, width = 9, height = 6, units = "cm")+
+  ggsave(here("figs", "impacts_line.tiff"), device = "tiff", dpi=600, width = 9, height = 6, units = "cm")
 
 
 
@@ -496,7 +497,7 @@ ggarrange(full_substitution, substitution_impact_full,
    annotate("text", x=-4.1, y=0.27*20, label="Farmed fish", size=1.5, hjust=0, colour = "black")+
    annotate("text", x=-4.1, y=0.12*20, label="Cultured\nmeat", size=1.5, hjust=0, colour = "black")+
    guides(colour = FALSE)+
-   ggsave(here("explore", "cottrell_explore", "full_adopt_diffuse_sub.jpg"), device="jpg", dpi=300, width=9, height = 5, units = "cm")
+   ggsave(here("scripts/explore/full_adopt_diffuse_sub.jpg"), device="jpg", dpi=300, width=9, height = 5, units = "cm")
 )
 
 
@@ -580,7 +581,7 @@ impact_indicator_change_diffuse <- bind_rows(
 
 
 
- substitution_impact_diffuse <- ggplot(data=impact_indicator_change_diffuse, aes(x=x, y=Relative_impact_indicator, colour=sub_type))+
+  substitution_impact_diffuse <- ggplot(data=impact_indicator_change_diffuse, aes(x=x, y=Relative_impact_indicator, colour=sub_type))+
    geom_hline(yintercept = 0, linetype=2, size=0.25, colour = "grey70")+
   geom_line(size=0.9)+
   theme_pubr()+
@@ -601,7 +602,7 @@ impact_indicator_change_diffuse <- bind_rows(
   # annotate("text", x=-5, y=11, label="Mycoprotein = 10.29", size=2, hjust=0)+
   # annotate("text", x=-5, y=9.2, label="Black soldier fly = 10.01", size=2, hjust=0)+
   #guides(colour=FALSE)+
-  ggsave(here("explore", "cottrell_explore", "impact_indicator_change_diffuse.jpg"), device="jpg", dpi=300, width=9, height = 5, units = "cm")
+  ggsave(here("scripts/explore/impact_indicator_change_diffuse.jpg"), device="jpg", dpi=300, width=9, height = 5, units = "cm")
 
 
 
@@ -918,9 +919,9 @@ substitution_impact_displaced <- ggplot(data=impact_indicator_change_displaced, 
            nrow=2,
            ncol=2,
            align = "hv")+
-  ggsave(here("explore", "cottrell_explore", "Figure 3 - the role of substitution.jpg"), device = "jpg", dpi = 600, width = 11.4, height = 9, units="cm")+
-   ggsave(here("explore", "cottrell_explore", "Figure 3 - the role of substitution.tiff"),device = "tiff", dpi = 600,  width = 11.4, height = 9, units="cm")+
-   ggsave(here("explore", "cottrell_explore", "Figure 3 - the role of substitution.pdf"), device = "pdf", dpi=600, width = 11.4, height = 9, units="cm")
+  ggsave(here("scripts/explore/Figure 3 - the role of substitution.jpg"), device = "jpg", dpi = 600, width = 11.4, height = 9, units="cm")+
+   ggsave(here("scripts/explore/Figure 3 - the role of substitution.tiff"),device = "tiff", dpi = 600,  width = 11.4, height = 9, units="cm")+
+   ggsave(here("scripts/explore/Figure 3 - the role of substitution.pdf"), device = "pdf", dpi=600, width = 11.4, height = 9, units="cm")
   
   
 
@@ -1412,4 +1413,181 @@ ggarrange(marginal_adopt_partial_sub, substitution_impact_niche_partial,
 
 
 ```
+
+#Sensitivity analysis for nutrients, servings, and minerals
+
+Edible quantity
+```{r}
+
+(diffuse_substitution_edible <-  data %>% filter(type %in% c("partial_disadopt_byproduct", "diffuse_disadopt", "full_adopt")) %>% 
+   mutate(curve = case_when(curve == "Adoption"  ~ "New food",
+                            curve == "Disadoption" & type == "diffuse_disadopt" ~ "Target products",
+                            curve == "Disadoption" & type == "partial_disadopt_byproduct" ~ "Non-target products")) %>%
+   mutate(curve = factor(curve, levels = c( "Target products", "Non-target products", "New food"))) %>% 
+   mutate(true_value = value*20) %>% 
+   ggplot(aes(x=x, y=true_value, colour=curve))+
+   geom_line(size=0.9)+
+   theme_pubr()+
+   theme(
+     text = element_text(size=6),
+     axis.text.x = element_blank(),
+     #axis.title.x = element_blank(),
+     axis.ticks.x = element_blank(),
+     axis.title = element_text(size=6),
+        axis.text.y = element_text(size=6))+
+   labs(y=bquote(Consumption~(kg~capita^-1~year^-1)), x= expression(Time%->%""), subtitle = "Full adoption, partial substitution of beef")+
+   scale_color_manual(values=lacroix_palette("PassionFruit", n=3))+
+   scale_y_continuous(breaks = c(0,5,10,15,20))+
+   guides(color=FALSE) +
+   annotation_custom(grob=cow, xmin = 3.2, xmax = 5.2, ymin = 0.48*20, ymax=0.63*20)+
+   annotation_custom(grob=beans, xmin = 4.2, xmax = 5., ymin = 0.1*20, ymax=0.18*20)+
+   annotation_custom(grob=algae, xmin = -5.2, xmax = -4.2, ymin = 0.52*20, ymax=0.62*20)+
+   annotation_custom(grob=fly, xmin = -5.2, xmax = -4.2, ymin = 0.42*20, ymax=0.52*20)+
+   annotation_custom(grob=fungi, xmin = -5.2, xmax = -4.2, ymin = 0.32*20, ymax=0.4*20)+
+   annotation_custom(grob=fish2, xmin = -5.2, xmax = -4.15, ymin = 0.22*20, ymax=0.3*20)+
+    annotation_custom(grob=meat, xmin = -5.2, xmax = -4.15, ymin = 0.12*20, ymax=0.2*20)+
+   geom_curve(x = -0.05, xend = -1, y = 0.81*20, yend =0.89*20,  curvature = 0.1, colour= "#C70E7B", arrow = arrow(ends = "first" , length = unit(0.02, "npc")))+
+   geom_curve(x = -0.05, xend = -1, y = 0.6*20, yend =0.73*20,  curvature = 0.1, colour= "#60CB57", arrow = arrow(ends = "first" , length = unit(0.02, "npc")))+
+   geom_curve(x = -2.1, xend = -1.3, y = 0.22*20, yend =0.32*20,  curvature = 0.1, colour="#172869", arrow = arrow(ends = "last", length = unit(0.02, "npc")))+
+   annotate("text", x=3.8, y=0.685*20, label="Beef", size=1.8, hjust=0, colour = "black")+
+   annotate("text", x=3.8, y=0.23*20, label="Pulses", size=1.8, hjust=0, colour = "black")+
+   annotate("text", x=-4.8, y=0.7*20, label="New foods e.g.", size=1.8, hjust=0, colour = "black")+
+   annotate("text", x=-4.1, y=0.57*20, label="Microalgae", size=1.5, hjust=0, colour = "black")+
+   annotate("text", x=-4.1, y=0.47*20, label="Insects", size=1.5, hjust=0, colour = "black")+
+   annotate("text", x=-4.1, y=0.37*20, label="Mycoprotein", size=1.5, hjust=0, colour = "black")+
+   annotate("text", x=-4.1, y=0.27*20, label="Farmed fish", size=1.5, hjust=0, colour = "black")+
+   annotate("text", x=-4.1, y=0.12*20, label="Cultured\nmeat", size=1.5, hjust=0, colour = "black")+
+   guides(colour = FALSE)+
+   ggsave(here("scripts/explore/full_adopt_diffuse_sub_edible_portion.jpg"), device="jpg", dpi=300, width=9, height = 5, units = "cm")
+)
+
+
+impact_indicator_change_diffuse_protein <- impact_indicator_change_diffuse %>% 
+  mutate(metric = "Protein quantity")
+ 
+
+impact_indicator_change_diffuse_edible_portion <- bind_rows(
+  myco_ghgs <- data %>% filter(type %in% c("partial_disadopt_byproduct", "diffuse_disadopt", "full_adopt")) %>% 
+    mutate(curve = case_when(curve == "Adoption" ~ "Mycoprotein",
+                             curve == "Disadoption" &  type == "diffuse_disadopt" ~ "Beef",
+                             curve == "Disadoption" & type == "partial_disadopt_byproduct" ~ "Pulses")) %>% 
+    mutate(impact_indicator = case_when(curve=="Mycoprotein" ~ 9.4,
+                                        curve=="Pulses" ~ 0.9,
+                                        curve == "Beef" ~ 123.7)) %>% 
+    #mutate(impact_indicator2 = impact_indicator*20) %>% 
+    mutate(true_value = value*20) %>% 
+    mutate(Relative_stressor = true_value*impact_indicator) %>% 
+    group_by(x) %>% 
+    summarise(total_stressor = sum(Relative_stressor)) %>% 
+    mutate(sub_type = "Mycoprotein"),
+  
+  
+  chlorella_substitution <- data %>% filter(type %in% c("partial_disadopt_byproduct", "diffuse_disadopt", "full_adopt")) %>% 
+    mutate(curve = case_when(curve == "Adoption" ~ "Microalgae",
+                             curve == "Disadoption" &  type == "diffuse_disadopt" ~ "Beef",
+                             curve == "Disadoption" & type == "partial_disadopt_byproduct" ~ "Pulses")) %>% 
+    mutate(impact_indicator = case_when(curve=="Microalgae" ~ 69.5,
+                                        curve=="Pulses" ~ 0.9,
+                                        curve == "Beef" ~ 123.7)) %>% 
+    mutate(true_value = value*20) %>% 
+    mutate(Relative_stressor = true_value*impact_indicator) %>% 
+    group_by(x) %>% 
+    summarise(total_stressor = sum(Relative_stressor)) %>% 
+    mutate(sub_type = "Chlorella microalgae"),
+  
+  BSF_substitution <- data %>%  filter(type %in% c("partial_disadopt_byproduct", "diffuse_disadopt", "full_adopt")) %>% 
+    mutate(curve = case_when(curve == "Adoption" ~ "Insects",
+                             curve == "Disadoption" &  type == "diffuse_disadopt" ~ "Beef",
+                             curve == "Disadoption" & type == "partial_disadopt_byproduct" ~ "Pulses")) %>% 
+    mutate(impact_indicator = case_when(curve=="Insects" ~ 6.6,
+                                        curve=="Pulses" ~ 0.9,
+                                        curve == "Beef" ~ 123.7)) %>% 
+    mutate(true_value = value*20) %>% 
+    mutate(Relative_stressor = true_value*impact_indicator) %>% 
+    group_by(x) %>% 
+    summarise(total_stressor = sum(Relative_stressor)) %>% 
+    mutate(sub_type = "Black soldier fly"),
+  
+  tilapia_substitution <- data %>%  filter(type %in% c("partial_disadopt_byproduct", "diffuse_disadopt", "full_adopt")) %>% 
+    mutate(curve = case_when(curve == "Adoption" ~ "Tilapia",
+                             curve == "Disadoption" &  type == "diffuse_disadopt" ~ "Beef",
+                             curve == "Disadoption" & type == "partial_disadopt_byproduct" ~ "Pulses")) %>% 
+    mutate(impact_indicator = case_when(curve=="Tilapia" ~ 58.5,
+                                        curve=="Pulses" ~ 0.9,
+                                        curve == "Beef" ~ 123.7)) %>% 
+    mutate(true_value = value*20) %>% 
+    mutate(Relative_stressor = true_value*impact_indicator) %>% 
+    group_by(x) %>% 
+    summarise(total_stressor = sum(Relative_stressor)) %>% 
+    mutate(sub_type = "Tilapia (farmed)"),
+  
+  cultmeat_substitution <- data %>%  filter(type %in% c("partial_disadopt_byproduct", "diffuse_disadopt", "full_adopt")) %>% 
+    mutate(curve = case_when(curve == "Adoption" ~ "Cultured meat",
+                             curve == "Disadoption" &  type == "diffuse_disadopt" ~ "Beef",
+                             curve == "Disadoption" & type == "partial_disadopt_byproduct" ~ "Pulses")) %>% 
+    mutate(impact_indicator = case_when(curve=="Cultured meat" ~ 14.6,
+                                        curve=="Pulses" ~ 0.9,
+                                        curve == "Beef" ~ 123.7)) %>% 
+    mutate(true_value = value*20) %>% 
+    mutate(Relative_stressor = true_value*impact_indicator) %>% 
+    group_by(x) %>% 
+    summarise(total_stressor = sum(Relative_stressor)) %>% 
+    mutate(sub_type = "Cultured meat")
+  
+)%>% 
+  group_by(sub_type) %>% 
+  nest() %>% 
+  mutate(Relative_impact_indicator = map(data, ~(.$total_stressor-.$total_stressor[1]))) %>% 
+  unnest() %>% 
+  mutate(sub_type = factor(sub_type, levels = c("Chlorella microalgae", "Tilapia (farmed)", "Cultured meat","Mycoprotein", "Black soldier fly" ))) %>% 
+  mutate(metric = "Edible quantity")
+
+
+impact_indicator_change_sensitvity <- bind_rows(impact_indicator_change_diffuse_protein, impact_indicator_change_diffuse_edible_portion)
+
+
+
+
+ substitution_impact_sensitivity <- ggplot(data=impact_indicator_change_sensitvity, aes(x=x, y=Relative_impact_indicator, colour=sub_type, linetype=metric))+
+   geom_hline(yintercept = 0, linetype=2, size=0.25, colour = "grey70")+
+  geom_line(size=0.9)+
+  theme_pubr()+
+ theme(axis.text.x = element_blank(),
+        #axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = c(0.53,0.18),
+       legend.box = "horizontal",
+       legend.margin = margin(t=-0.05,r=-0.1,b=-0.05,l=-0.15, unit="cm"),
+       legend.box.margin = margin(t=-0.3,r=0,b=0,l=0, unit="cm"),
+        text = element_text(size=6),
+        axis.title.y = element_text(size=6),
+       legend.background = element_rect(fill="transparent", colour="transparent"),
+        legend.key.size = unit(0.4, "cm"),
+       legend.key.height = unit(0.2, "cm"))+
+  labs(y=bquote(Delta~GWP[100]~(kg~CO[2]~eq.)), x= expression(Time%->%""),colour = "Protein substitute", linetype = "Comparison metric", subtitle = " ")+
+  scale_color_manual(values=lacroix_palette("Lemon", n=5))+
+   scale_y_continuous(limits=c(-120*20,70*20))+
+  # geom_hline(yintercept = c(10.01,10.29, 15.65), linetype=2, colour="grey70")+
+  # annotate("text", x=-5, y=16.2, label="Chlorella = 15.65", size=2, hjust=0 )+
+  # annotate("text", x=-5, y=11, label="Mycoprotein = 10.29", size=2, hjust=0)+
+  # annotate("text", x=-5, y=9.2, label="Black soldier fly = 10.01", size=2, hjust=0)+
+  ggsave(here("scripts/explore/impact_indicator_change_diffuse_sensitivity.jpg"), device="jpg", dpi=300, width=9, height = 5, units = "cm")
+
+
+ 
+ Figure_s1 <- ggarrange(diffuse_substitution_edible,
+                        substitution_impact_sensitivity,
+                        labels = c("(a)", "(b)"), 
+                        font.label = list(size=7),
+                        label.y = 1,
+                        label.x = 0.05,
+                        nrow = 1,
+                        ncol=2,
+                        align = "hv")
+ 
+  ggsave(here("figs/Figure S1 - protein versus quantity.jpg"), device = "jpg", dpi=600, width=11.4, height = 4.5, units = "cm")
+ 
+```
+
+
 
